@@ -1,0 +1,975 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Investment Record</title>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+
+<style>
+* {
+    box-sizing: border-box;
+}
+
+body {
+    margin: 0;
+    font-family: Arial, sans-serif;
+    background: #f4f6f8;
+    color: #222;
+}
+
+.container {
+    max-width: 1100px;
+    margin: auto;
+    padding: 20px;
+}
+
+.header {
+    background: #1f2937;
+    color: white;
+    padding: 22px;
+    border-radius: 14px;
+    margin-bottom: 20px;
+}
+
+.header h1 {
+    margin: 0 0 6px;
+    font-size: 28px;
+}
+
+.header p {
+    margin: 0;
+    opacity: 0.8;
+}
+
+.card {
+    background: white;
+    border-radius: 14px;
+    padding: 20px;
+    margin-bottom: 20px;
+    box-shadow: 0 3px 12px rgba(0,0,0,0.08);
+}
+
+.date-box {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 20px;
+}
+
+input {
+    width: 100%;
+    padding: 12px;
+    border: 1px solid #d1d5db;
+    border-radius: 8px;
+    font-size: 15px;
+    outline: none;
+}
+
+input:focus {
+    border-color: #2563eb;
+}
+
+.table-wrapper {
+    overflow-x: auto;
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 750px;
+}
+
+th {
+    background: #f1f5f9;
+    padding: 12px;
+    text-align: left;
+}
+
+td {
+    padding: 8px;
+    border-bottom: 1px solid #e5e7eb;
+}
+
+td:first-child {
+    font-weight: bold;
+}
+
+.diff {
+    font-weight: bold;
+}
+
+.positive {
+    color: #15803d;
+}
+
+.negative {
+    color: #dc2626;
+}
+
+.total-row {
+    background: #f8fafc;
+    font-weight: bold;
+}
+
+button {
+    border: none;
+    padding: 12px 18px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 15px;
+    font-weight: bold;
+}
+
+.add-btn {
+    background: #e5e7eb;
+    color: #111827;
+    margin-top: 15px;
+}
+
+.save-btn {
+    background: #2563eb;
+    color: white;
+    width: 100%;
+    margin-top: 20px;
+}
+
+.history-btn {
+    background: #111827;
+    color: white;
+    width: 100%;
+    margin-bottom: 15px;
+}
+
+.delete-btn {
+    background: #fee2e2;
+    color: #dc2626;
+    padding: 8px 12px;
+}
+
+.summary {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 12px;
+    margin-top: 20px;
+}
+
+.summary-box {
+    background: #f8fafc;
+    padding: 16px;
+    border-radius: 10px;
+}
+
+.summary-box span {
+    display: block;
+    color: #64748b;
+    font-size: 13px;
+    margin-bottom: 7px;
+}
+
+.summary-box strong {
+    font-size: 19px;
+}
+
+.history-item {
+    border: 1px solid #e5e7eb;
+    border-radius: 10px;
+    padding: 15px;
+    margin-bottom: 12px;
+}
+
+.history-date {
+    font-weight: bold;
+    margin-bottom: 8px;
+}
+
+.history-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 5px 0;
+}
+
+.history-total {
+    border-top: 1px solid #ddd;
+    margin-top: 10px;
+    padding-top: 10px;
+}
+
+.hidden {
+    display: none;
+}
+
+.status {
+    margin-top: 12px;
+    text-align: center;
+    font-weight: bold;
+}
+
+@media (max-width: 700px) {
+
+    .container {
+        padding: 10px;
+    }
+
+    .header h1 {
+        font-size: 22px;
+    }
+
+    .card {
+        padding: 14px;
+    }
+
+    .summary {
+        grid-template-columns: repeat(2, 1fr);
+    }
+}
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+    <div class="header">
+        <h1>Investment Record</h1>
+        <p>Daily Rate & Investment Management</p>
+    </div>
+
+    <div class="card">
+
+        <div class="date-box">
+            <strong>Date:</strong>
+
+            <input
+                type="date"
+                id="entryDate"
+                onchange="dateChanged()"
+            >
+        </div>
+
+        <div class="table-wrapper">
+
+            <table>
+
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Old Rate</th>
+                        <th>New Rate</th>
+                        <th>Difference</th>
+                        <th>Investment</th>
+                        <th></th>
+                    </tr>
+                </thead>
+
+                <tbody id="dataBody"></tbody>
+
+                <tfoot>
+
+                    <tr class="total-row">
+
+                        <td>TOTAL</td>
+
+                        <td id="totalOld">0</td>
+
+                        <td id="totalNew">0</td>
+
+                        <td id="totalDiff">0</td>
+
+                        <td id="totalInvestment">0</td>
+
+                        <td></td>
+
+                    </tr>
+
+                </tfoot>
+
+            </table>
+
+        </div>
+
+        <button
+            class="add-btn"
+            onclick="addRow()"
+        >
+            + Add Row
+        </button>
+
+        <div class="summary">
+
+            <div class="summary-box">
+                <span>Total Old Rate</span>
+                <strong id="summaryOld">0</strong>
+            </div>
+
+            <div class="summary-box">
+                <span>Total New Rate</span>
+                <strong id="summaryNew">0</strong>
+            </div>
+
+            <div class="summary-box">
+                <span>Total Difference</span>
+                <strong id="summaryDiff">0</strong>
+            </div>
+
+            <div class="summary-box">
+                <span>Final Amount</span>
+                <strong id="finalAmount">0</strong>
+            </div>
+
+        </div>
+
+        <button
+            class="save-btn"
+            onclick="saveData()"
+        >
+            SAVE ENTRY
+        </button>
+
+        <div
+            class="status"
+            id="status"
+        ></div>
+
+    </div>
+
+    <div class="card">
+
+        <button
+            class="history-btn"
+            onclick="toggleHistory()"
+        >
+            VIEW HISTORY
+        </button>
+
+        <div
+            id="history"
+            class="hidden"
+        ></div>
+
+    </div>
+
+</div>
+
+<script>
+
+const SUPABASE_URL =
+"https://gcdbsywqwkreufaaouvx.supabase.co";
+
+const SUPABASE_KEY =
+"sb_publishable_EFsPnhS4H-KvWpngvKcPEQ_s4H-pkNN";
+
+const client =
+window.supabase.createClient(
+    SUPABASE_URL,
+    SUPABASE_KEY
+);
+
+const names = [
+    "Provident",
+    "Mint",
+    "PMS",
+    "PMS",
+    "AIF",
+    "Stocks"
+];
+
+document.getElementById("entryDate").value =
+new Date().toISOString().split("T")[0];
+
+createDefaultRows();
+
+calculate();
+
+function createDefaultRows() {
+
+    const tbody =
+    document.getElementById("dataBody");
+
+    tbody.innerHTML = "";
+
+    names.forEach(name => {
+
+        addRow(
+            name,
+            0,
+            0,
+            0,
+            false
+        );
+
+    });
+
+}
+
+async function dateChanged() {
+
+    const selectedDate =
+    document.getElementById("entryDate").value;
+
+    if (!selectedDate) {
+        return;
+    }
+
+    const { data, error } =
+    await client
+    .from("records")
+    .select("*")
+    .lt("entry_date", selectedDate)
+    .order("entry_date", {
+        ascending: false
+    })
+    .order("created_at", {
+        ascending: false
+    });
+
+    if (error) {
+
+        console.error(error);
+
+        alert(
+            "Previous data load error: " +
+            error.message
+        );
+
+        return;
+    }
+
+    if (!data || data.length === 0) {
+
+        createDefaultRows();
+
+        calculate();
+
+        return;
+    }
+
+    const latestDate =
+    data[0].entry_date;
+
+    const latestRecords =
+    data.filter(
+        item =>
+        item.entry_date === latestDate
+    );
+
+    loadPreviousData(
+        latestRecords
+    );
+}
+
+function loadPreviousData(records) {
+
+    const tbody =
+    document.getElementById("dataBody");
+
+    tbody.innerHTML = "";
+
+    names.forEach((name, index) => {
+
+        const previous =
+        records[index];
+
+        if (previous) {
+
+            addRow(
+                name,
+                previous.new_rate,
+                0,
+                0,
+                false
+            );
+
+        } else {
+
+            addRow(
+                name,
+                0,
+                0,
+                0,
+                false
+            );
+
+        }
+
+    });
+
+    calculate();
+
+}
+
+function addRow(
+    name = "",
+    oldRate = 0,
+    newRate = 0,
+    investment = 0,
+    allowDelete = true
+) {
+
+    const tbody =
+    document.getElementById("dataBody");
+
+    const row =
+    document.createElement("tr");
+
+    row.innerHTML = `
+
+        <td>
+
+            <input
+                type="text"
+                class="name"
+                value="${name}"
+            >
+
+        </td>
+
+        <td>
+
+            <input
+                type="number"
+                class="oldRate"
+                value="${oldRate}"
+                oninput="calculate()"
+            >
+
+        </td>
+
+        <td>
+
+            <input
+                type="number"
+                class="newRate"
+                value="${newRate}"
+                oninput="calculate()"
+            >
+
+        </td>
+
+        <td class="diff">
+            0
+        </td>
+
+        <td>
+
+            <input
+                type="number"
+                class="investment"
+                value="${investment}"
+                oninput="calculate()"
+            >
+
+        </td>
+
+        <td>
+
+            ${
+                allowDelete
+                ?
+                `<button
+                    class="delete-btn"
+                    onclick="
+                        this.closest('tr').remove();
+                        calculate();
+                    "
+                >X</button>`
+                :
+                ""
+            }
+
+        </td>
+    `;
+
+    tbody.appendChild(row);
+
+}
+
+function number(value) {
+
+    return Number(value) || 0;
+
+}
+
+function format(value) {
+
+    return new Intl.NumberFormat(
+        "en-IN"
+    ).format(value);
+
+}
+
+function calculate() {
+
+    let oldTotal = 0;
+    let newTotal = 0;
+    let diffTotal = 0;
+    let investmentTotal = 0;
+
+    document
+    .querySelectorAll("#dataBody tr")
+    .forEach(row => {
+
+        const oldRate =
+        number(
+            row.querySelector(
+                ".oldRate"
+            ).value
+        );
+
+        const newRate =
+        number(
+            row.querySelector(
+                ".newRate"
+            ).value
+        );
+
+        const investment =
+        number(
+            row.querySelector(
+                ".investment"
+            ).value
+        );
+
+        const difference =
+        newRate - oldRate;
+
+        const diffCell =
+        row.querySelector(".diff");
+
+        diffCell.textContent =
+        format(difference);
+
+        diffCell.className =
+        "diff " +
+        (
+            difference >= 0
+            ? "positive"
+            : "negative"
+        );
+
+        oldTotal += oldRate;
+
+        newTotal += newRate;
+
+        diffTotal += difference;
+
+        investmentTotal += investment;
+
+    });
+
+    document.getElementById(
+        "totalOld"
+    ).textContent =
+    format(oldTotal);
+
+    document.getElementById(
+        "totalNew"
+    ).textContent =
+    format(newTotal);
+
+    document.getElementById(
+        "totalDiff"
+    ).textContent =
+    format(diffTotal);
+
+    document.getElementById(
+        "totalInvestment"
+    ).textContent =
+    format(investmentTotal);
+
+    document.getElementById(
+        "summaryOld"
+    ).textContent =
+    format(oldTotal);
+
+    document.getElementById(
+        "summaryNew"
+    ).textContent =
+    format(newTotal);
+
+    document.getElementById(
+        "summaryDiff"
+    ).textContent =
+    format(diffTotal);
+
+    const finalAmount =
+    diffTotal + investmentTotal;
+
+    document.getElementById(
+        "finalAmount"
+    ).textContent =
+    format(finalAmount);
+
+}
+
+async function saveData() {
+
+    const date =
+    document.getElementById(
+        "entryDate"
+    ).value;
+
+    if (!date) {
+
+        alert(
+            "Please select date"
+        );
+
+        return;
+    }
+
+    const rows = [];
+
+    document
+    .querySelectorAll("#dataBody tr")
+    .forEach((row, index) => {
+
+        const name =
+        row.querySelector(
+            ".name"
+        ).value.trim();
+
+        const oldRate =
+        number(
+            row.querySelector(
+                ".oldRate"
+            ).value
+        );
+
+        const newRate =
+        number(
+            row.querySelector(
+                ".newRate"
+            ).value
+        );
+
+        const investment =
+        number(
+            row.querySelector(
+                ".investment"
+            ).value
+        );
+
+        if (name !== "") {
+
+            rows.push({
+
+                entry_date: date,
+
+                name: name,
+
+                old_rate: oldRate,
+
+                new_rate: newRate,
+
+                investment: investment
+
+            });
+
+        }
+
+    });
+
+    if (rows.length === 0) {
+
+        alert(
+            "Please add at least one record"
+        );
+
+        return;
+    }
+
+    document.getElementById(
+        "status"
+    ).textContent =
+    "Saving...";
+
+    const { error } =
+    await client
+    .from("records")
+    .insert(rows);
+
+    if (error) {
+
+        console.error(error);
+
+        document.getElementById(
+            "status"
+        ).textContent =
+        "Error while saving";
+
+        alert(error.message);
+
+        return;
+    }
+
+    document.getElementById(
+        "status"
+    ).textContent =
+    "Saved successfully ✓";
+
+    alert(
+        "Data saved successfully!"
+    );
+
+    loadHistory();
+
+}
+
+async function loadHistory() {
+
+    const { data, error } =
+    await client
+    .from("records")
+    .select("*")
+    .order("entry_date", {
+        ascending: false
+    })
+    .order("created_at", {
+        ascending: false
+    });
+
+    if (error) {
+
+        console.error(error);
+
+        return;
+    }
+
+    const history =
+    document.getElementById(
+        "history"
+    );
+
+    history.innerHTML = "";
+
+    const grouped = {};
+
+    data.forEach(item => {
+
+        if (!grouped[item.entry_date]) {
+
+            grouped[item.entry_date] = [];
+
+        }
+
+        grouped[
+            item.entry_date
+        ].push(item);
+
+    });
+
+    Object
+    .keys(grouped)
+    .forEach(date => {
+
+        let oldTotal = 0;
+        let newTotal = 0;
+        let investmentTotal = 0;
+
+        grouped[date]
+        .forEach(item => {
+
+            oldTotal +=
+            Number(item.old_rate);
+
+            newTotal +=
+            Number(item.new_rate);
+
+            investmentTotal +=
+            Number(item.investment);
+
+        });
+
+        const diffTotal =
+        newTotal - oldTotal;
+
+        const finalAmount =
+        diffTotal +
+        investmentTotal;
+
+        const div =
+        document.createElement(
+            "div"
+        );
+
+        div.className =
+        "history-item";
+
+        div.innerHTML = `
+
+            <div class="history-date">
+                ${date}
+            </div>
+
+            <div class="history-row">
+                <span>Old Rate</span>
+                <strong>
+                    ${format(oldTotal)}
+                </strong>
+            </div>
+
+            <div class="history-row">
+                <span>New Rate</span>
+                <strong>
+                    ${format(newTotal)}
+                </strong>
+            </div>
+
+            <div class="history-row">
+                <span>Difference</span>
+                <strong>
+                    ${format(diffTotal)}
+                </strong>
+            </div>
+
+            <div class="history-row">
+                <span>Investment</span>
+                <strong>
+                    ${format(investmentTotal)}
+                </strong>
+            </div>
+
+            <div class="history-row history-total">
+                <span>Final Amount</span>
+                <strong>
+                    ${format(finalAmount)}
+                </strong>
+            </div>
+
+        `;
+
+        history.appendChild(div);
+
+    });
+
+}
+
+function toggleHistory() {
+
+    const history =
+    document.getElementById(
+        "history"
+    );
+
+    history.classList.toggle(
+        "hidden"
+    );
+
+    if (
+        !history.classList.contains(
+            "hidden"
+        )
+    ) {
+
+        loadHistory();
+
+    }
+
+}
+
+</script>
+
+</body>
+</html>
