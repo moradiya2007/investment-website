@@ -191,6 +191,13 @@ td:first-child {
     margin-bottom: 15px;
 }
 
+.view-btn {
+    background: #2563eb;
+    color: white;
+    padding: 8px 14px;
+    font-size: 13px;
+}
+
 .delete-btn {
     background: #dc2626;
     color: white;
@@ -219,12 +226,22 @@ button {
     justify-content: space-between;
     align-items: center;
     gap: 10px;
-    margin-bottom: 10px;
 }
 
 .history-date {
     font-weight: bold;
     font-size: 17px;
+}
+
+.history-actions {
+    display: flex;
+    gap: 8px;
+}
+
+.history-summary {
+    margin-top: 12px;
+    padding-top: 10px;
+    border-top: 1px solid #e5e7eb;
 }
 
 .history-row {
@@ -238,6 +255,33 @@ button {
     margin-top: 10px;
     padding-top: 10px;
     font-size: 17px;
+}
+
+.history-details {
+    display: none;
+    margin-top: 15px;
+    border-top: 1px solid #ddd;
+    padding-top: 15px;
+}
+
+.detail-box {
+    background: #f8fafc;
+    border-radius: 9px;
+    padding: 12px;
+    margin-bottom: 10px;
+}
+
+.detail-name {
+    font-size: 16px;
+    font-weight: bold;
+    margin-bottom: 8px;
+}
+
+.detail-row {
+    display: flex;
+    justify-content: space-between;
+    padding: 4px 0;
+    font-size: 14px;
 }
 
 .hidden {
@@ -279,6 +323,10 @@ button {
 
     .history-header {
         align-items: flex-start;
+    }
+
+    .history-actions {
+        flex-direction: column;
     }
 }
 </style>
@@ -870,7 +918,6 @@ async function loadHistory() {
     if (error) {
 
         console.error(error);
-
         return;
     }
 
@@ -923,43 +970,181 @@ async function loadHistory() {
                     ${date}
                 </div>
 
-                <button
-                    class="delete-btn"
-                    onclick="deleteHistory('${date}')"
-                >
-                    DELETE
-                </button>
+                <div class="history-actions">
+
+                    <button
+                        class="view-btn"
+                        onclick="viewHistory('${date}')"
+                    >
+                        VIEW
+                    </button>
+
+                    <button
+                        class="delete-btn"
+                        onclick="deleteHistory('${date}')"
+                    >
+                        DELETE
+                    </button>
+
+                </div>
 
             </div>
 
-            <div class="history-row">
+            <div class="history-summary">
+
+                <div class="history-row">
+
+                    <span>
+                        Total Old Value
+                    </span>
+
+                    <strong>
+                        ${format(oldTotal)}
+                    </strong>
+
+                </div>
+
+                <div class="history-row">
+
+                    <span>
+                        Total New Value
+                    </span>
+
+                    <strong>
+                        ${format(newTotal)}
+                    </strong>
+
+                </div>
+
+                <div class="history-row history-total">
+
+                    <span>
+                        Total Profit/Loss
+                    </span>
+
+                    <strong class="${
+                        profitLoss >= 0
+                        ? "positive"
+                        : "negative"
+                    }">
+                        ${format(profitLoss)}
+                    </strong>
+
+                </div>
+
+            </div>
+
+            <div
+                id="details-${date}"
+                class="history-details"
+            ></div>
+
+        `;
+
+        history.appendChild(div);
+
+    });
+
+}
+
+async function viewHistory(date) {
+
+    const details =
+    document.getElementById(
+        "details-" + date
+    );
+
+    if (
+        details.style.display === "block"
+    ) {
+
+        details.style.display = "none";
+
+        return;
+    }
+
+    const { data, error } =
+    await client
+    .from("records")
+    .select("*")
+    .eq("entry_date", date)
+    .order("created_at", {
+        ascending: true
+    });
+
+    if (error) {
+
+        alert(
+            "Unable to load details: " +
+            error.message
+        );
+
+        return;
+    }
+
+    details.innerHTML = "";
+
+    names.forEach(name => {
+
+        const item =
+        data.find(
+            record =>
+            record.name === name
+        );
+
+        const oldValue =
+        item
+        ? Number(item.old_rate)
+        : 0;
+
+        const newValue =
+        item
+        ? Number(item.new_rate)
+        : 0;
+
+        const profitLoss =
+        newValue - oldValue;
+
+        const box =
+        document.createElement("div");
+
+        box.className =
+        "detail-box";
+
+        box.innerHTML = `
+
+            <div class="detail-name">
+                ${name}
+            </div>
+
+            <div class="detail-row">
 
                 <span>
-                    Total Old Value
+                    Old Value
                 </span>
 
                 <strong>
-                    ${format(oldTotal)}
+                    ${format(oldValue)}
                 </strong>
 
             </div>
 
-            <div class="history-row">
+            <div class="detail-row">
 
                 <span>
-                    Total New Value
+                    New Value
                 </span>
 
                 <strong>
-                    ${format(newTotal)}
+                    ${format(newValue)}
                 </strong>
 
             </div>
 
-            <div class="history-row history-total">
+            <div class="detail-row">
 
                 <span>
-                    Total Profit/Loss
+                    Profit/Loss
                 </span>
 
                 <strong class="${
@@ -974,10 +1159,11 @@ async function loadHistory() {
 
         `;
 
-        history.appendChild(div);
+        details.appendChild(box);
 
     });
 
+    details.style.display = "block";
 }
 
 async function deleteHistory(date) {
@@ -1027,9 +1213,7 @@ function toggleHistory() {
     if (
         !history.classList.contains("hidden")
     ) {
-
         loadHistory();
-
     }
 
 }
