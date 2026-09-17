@@ -3,11 +3,8 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
 <title>Investment Record</title>
-
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
-
 <style>
 * {
     box-sizing: border-box;
@@ -331,162 +328,161 @@ button {
 }
 </style>
 </head>
-
 <body>
-
 <div class="container">
 
-    <div class="header">
-        <h1>Investment Record</h1>
-        <p>Daily Value & Profit/Loss Management</p>
+```
+<div class="header">
+    <h1>Investment Record</h1>
+    <p>Daily Value & Profit/Loss Management</p>
+</div>
+
+<div class="card">
+
+    <div class="date-box">
+        <strong>Date:</strong>
+
+        <input
+            type="date"
+            id="entryDate"
+            onchange="dateChanged()"
+        >
     </div>
 
-    <div class="card">
+    <div class="table-wrapper">
 
-        <div class="date-box">
-            <strong>Date:</strong>
+        <table>
 
-            <input
-                type="date"
-                id="entryDate"
-                onchange="dateChanged()"
+            <thead>
+                <tr>
+                    <th>Name</th>
+                    <th>Old Value</th>
+                    <th>New Value</th>
+                    <th>Profit/Loss</th>
+                </tr>
+            </thead>
+
+            <tbody id="dataBody"></tbody>
+
+        </table>
+
+    </div>
+
+    <div class="summary">
+
+        <div class="summary-row">
+            <span class="summary-label">
+                Total Old Value
+            </span>
+
+            <span
+                class="summary-value"
+                id="totalOld"
             >
+                0
+            </span>
         </div>
 
-        <div class="table-wrapper">
+        <div class="summary-row">
+            <span class="summary-label">
+                Total New Value
+            </span>
 
-            <table>
-
-                <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>Old Value</th>
-                        <th>New Value</th>
-                        <th>Profit/Loss</th>
-                    </tr>
-                </thead>
-
-                <tbody id="dataBody"></tbody>
-
-            </table>
-
+            <span
+                class="summary-value"
+                id="totalNew"
+            >
+                0
+            </span>
         </div>
 
-        <div class="summary">
+        <div class="summary-row">
+            <span class="summary-label">
+                Total Profit/Loss
+            </span>
 
-            <div class="summary-row">
-                <span class="summary-label">
-                    Total Old Value
-                </span>
+            <span
+                class="summary-value"
+                id="totalProfitLoss"
+            >
+                0
+            </span>
+        </div>
 
-                <span
-                    class="summary-value"
-                    id="totalOld"
+        <div class="operation-section">
+
+            <div class="operation-title">
+                Profit/Loss Operation
+            </div>
+
+            <div class="operation-line">
+
+                <select
+                    id="operation"
+                    onchange="calculateFinal()"
                 >
-                    0
-                </span>
-            </div>
+                    <option value="+">+</option>
+                    <option value="-">-</option>
+                </select>
 
-            <div class="summary-row">
-                <span class="summary-label">
-                    Total New Value
-                </span>
-
-                <span
-                    class="summary-value"
-                    id="totalNew"
+                <input
+                    type="number"
+                    id="operationAmount"
+                    value="0"
+                    placeholder="Enter amount"
+                    oninput="calculateFinal()"
                 >
-                    0
-                </span>
-            </div>
-
-            <div class="summary-row">
-                <span class="summary-label">
-                    Total Profit/Loss
-                </span>
-
-                <span
-                    class="summary-value"
-                    id="totalProfitLoss"
-                >
-                    0
-                </span>
-            </div>
-
-            <div class="operation-section">
-
-                <div class="operation-title">
-                    Profit/Loss Operation
-                </div>
-
-                <div class="operation-line">
-
-                    <select
-                        id="operation"
-                        onchange="calculateFinal()"
-                    >
-                        <option value="+">+</option>
-                        <option value="-">-</option>
-                    </select>
-
-                    <input
-                        type="number"
-                        id="operationAmount"
-                        value="0"
-                        placeholder="Enter amount"
-                        oninput="calculateFinal()"
-                    >
-
-                </div>
-
-            </div>
-
-            <div class="final-row">
-
-                <span>
-                    Final Profit/Loss
-                </span>
-
-                <span id="finalProfitLoss">
-                    0
-                </span>
 
             </div>
 
         </div>
 
-        <button
-            class="save-btn"
-            onclick="saveData()"
-        >
-            SAVE ENTRY
-        </button>
+        <div class="final-row">
 
-        <div
-            class="status"
-            id="status"
-        ></div>
+            <span>
+                Final Profit/Loss
+            </span>
+
+            <span id="finalProfitLoss">
+                0
+            </span>
+
+        </div>
 
     </div>
 
-    <div class="card">
+    <button
+        class="save-btn"
+        onclick="saveData()"
+    >
+        SAVE ENTRY
+    </button>
 
-        <button
-            class="history-btn"
-            onclick="toggleHistory()"
-        >
-            VIEW HISTORY
-        </button>
-
-        <div
-            id="history"
-            class="hidden"
-        ></div>
-
-    </div>
+    <div
+        class="status"
+        id="status"
+    ></div>
 
 </div>
 
+<div class="card">
+
+    <button
+        class="history-btn"
+        onclick="toggleHistory()"
+    >
+        VIEW HISTORY
+    </button>
+
+    <div
+        id="history"
+        class="hidden"
+    ></div>
+
+</div>
+```
+
+</div>
 <script>
 
 const SUPABASE_URL =
@@ -709,17 +705,19 @@ async function dateChanged() {
 
     if (!selectedDate) return;
 
+    // Find the latest SAVED date before the selected date.
+    // Its New Value will become the Old Value for the selected date.
     const { data, error } =
     await client
-    .from("records")
-    .select("*")
-    .lt("entry_date", selectedDate)
-    .order("entry_date", {
-        ascending: false
-    })
-    .order("created_at", {
-        ascending: false
-    });
+        .from("records")
+        .select("*")
+        .lt("entry_date", selectedDate)
+        .order("entry_date", {
+            ascending: false
+        })
+        .order("created_at", {
+            ascending: false
+        });
 
     if (error) {
 
@@ -748,8 +746,8 @@ async function dateChanged() {
         return;
     }
 
-    const latestDate =
-    data[0].entry_date;
+    // The first record belongs to the latest saved date.
+    const latestDate = data[0].entry_date;
 
     const latestRecords =
     data.filter(
@@ -1219,6 +1217,5 @@ function toggleHistory() {
 }
 
 </script>
-
 </body>
 </html>
