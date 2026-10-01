@@ -202,6 +202,13 @@ td:first-child {
     font-size: 13px;
 }
 
+.edit-btn {
+    background: #16a34a;
+    color: white;
+    padding: 8px 14px;
+    font-size: 13px;
+}
+
 button {
     border: none;
     padding: 12px 18px;
@@ -705,57 +712,73 @@ async function dateChanged() {
 
     if (!selectedDate) return;
 
-    // Find the latest SAVED date before the selected date.
-    // Its New Value will become the Old Value for the selected date.
+    // First check whether this date already has saved entries.
+    const { data: currentData, error: currentError } =
+    await client
+        .from("records")
+        .select("*")
+        .eq("entry_date", selectedDate)
+        .order("created_at", { ascending: true });
+
+    if (currentError) {
+        alert("Date data load error: " + currentError.message);
+        return;
+    }
+
+    // If entries exist for this date, show the exact saved Old and New values.
+    if (currentData && currentData.length > 0) {
+        loadSavedDateData(currentData);
+        return;
+    }
+
+    // Otherwise, use the latest SAVED date before the selected date
+    // and carry its New Value forward as this date's Old Value.
     const { data, error } =
     await client
         .from("records")
         .select("*")
         .lt("entry_date", selectedDate)
-        .order("entry_date", {
-            ascending: false
-        })
-        .order("created_at", {
-            ascending: false
-        });
+        .order("entry_date", { ascending: false })
+        .order("created_at", { ascending: false });
 
     if (error) {
-
-        alert(
-            "Previous data load error: " +
-            error.message
-        );
-
+        alert("Previous data load error: " + error.message);
         return;
     }
 
     if (!data || data.length === 0) {
-
         createDefaultRows();
-
-        document.getElementById(
-            "operationAmount"
-        ).value = 0;
-
-        document.getElementById(
-            "operation"
-        ).value = "+";
-
+        document.getElementById("operationAmount").value = 0;
+        document.getElementById("operation").value = "+";
         calculate();
-
         return;
     }
 
-    // The first record belongs to the latest saved date.
     const latestDate = data[0].entry_date;
-
-    const latestRecords =
-    data.filter(
-        item =>
-        item.entry_date === latestDate
-    );
+    const latestRecords = data.filter(item => item.entry_date === latestDate);
 
     loadPreviousData(latestRecords);
+}
+
+function loadSavedDateData(records) {
+    const tbody = document.getElementById("dataBody");
+    tbody.innerHTML = "";
+
+    names.forEach(name => {
+        const saved = records.find(item => item.name === name);
+        addRow(
+            name,
+            saved ? Number(saved.old_rate) : 0,
+            saved ? Number(saved.new_rate) : 0
+        );
+    });
+
+    document.getElementById("operationAmount").value = 0;
+    document.getElementById("operation").value = "+";
+    calculate();
+
+    document.getElementById("status").textContent =
+        "Saved entry loaded for " + document.getElementById("entryDate").value + ".";
 }
 
 function loadPreviousData(records) {
@@ -978,6 +1001,13 @@ async function loadHistory() {
                     </button>
 
                     <button
+                        class="edit-btn"
+                        onclick="editHistory('${date}')"
+                    >
+                        EDIT
+                    </button>
+
+                    <button
                         class="delete-btn"
                         onclick="deleteHistory('${date}')"
                     >
@@ -1162,6 +1192,50 @@ async function viewHistory(date) {
     });
 
     details.style.display = "block";
+}
+
+async function editHistory(date) {
+
+    const { data, error } = await client
+        .from("records")
+        .select("*")
+        .eq("entry_date", date)
+        .order("created_at", { ascending: true });
+
+    if (error) {
+        alert("Unable to load data for editing: " + error.message);
+        return;
+    }
+
+    if (!data || data.length === 0) {
+        alert("No records found for this date.");
+        return;
+    }
+
+    // Load the selected date's saved values into the main form.
+    document.getElementById("entryDate").value = date;
+
+    const tbody = document.getElementById("dataBody");
+    tbody.innerHTML = "";
+
+    names.forEach(name => {
+        const item = data.find(record => record.name === name);
+        addRow(
+            name,
+            item ? Number(item.old_rate) : 0,
+            item ? Number(item.new_rate) : 0
+        );
+    });
+
+    document.getElementById("operationAmount").value = 0;
+    document.getElementById("operation").value = "+";
+    calculate();
+
+    document.getElementById("status").textContent =
+        "Editing " + date + " — make changes and click SAVE ENTRY.";
+
+    // Bring the editable form into view.
+    document.querySelector(".header").scrollIntoView({ behavior: "smooth" });
 }
 
 async function deleteHistory(date) {
