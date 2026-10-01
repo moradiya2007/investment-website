@@ -56,6 +56,13 @@ body {
     margin-bottom: 20px;
 }
 
+.range-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 15px;
+    margin-bottom: 15px;
+}
+
 input,
 select {
     width: 100%;
@@ -154,14 +161,34 @@ td:first-child {
     display: flex;
     align-items: center;
     gap: 10px;
+    margin-bottom: 10px;
 }
 
-.operation-line select {
-    width: 80px;
+.operation-line select.asset-select {
+    flex: 2;
+}
+
+.operation-line select.op-select {
+    width: 70px;
 }
 
 .operation-line input {
-    max-width: 250px;
+    flex: 2;
+}
+
+.add-op-btn {
+    background: #059669;
+    color: white;
+    padding: 8px 14px;
+    font-size: 13px;
+    margin-bottom: 10px;
+}
+
+.remove-op-btn {
+    background: #dc2626;
+    color: white;
+    padding: 10px;
+    font-size: 13px;
 }
 
 .final-row {
@@ -183,6 +210,13 @@ td:first-child {
 
 .history-btn {
     background: #111827;
+    color: white;
+    width: 100%;
+    margin-bottom: 15px;
+}
+
+.range-btn {
+    background: #7c3aed;
     color: white;
     width: 100%;
     margin-bottom: 15px;
@@ -298,208 +332,189 @@ button {
     font-weight: bold;
 }
 
+.section-title {
+    font-size: 18px;
+    font-weight: bold;
+    margin-bottom: 15px;
+    color: #1f2937;
+    border-bottom: 2px solid #e5e7eb;
+    padding-bottom: 8px;
+}
+
+.merge-box {
+    background: #eff6ff;
+    border: 1px solid #bfdbfe;
+    border-radius: 10px;
+    padding: 16px;
+    margin-top: 20px;
+}
+
+.merge-title {
+    font-size: 18px;
+    font-weight: bold;
+    color: #1e40af;
+    margin-bottom: 12px;
+}
+
 @media (max-width: 700px) {
-
-    .container {
-        padding: 10px;
-    }
-
-    .header h1 {
-        font-size: 22px;
-    }
-
-    .card {
-        padding: 14px;
-    }
-
-    .summary-row {
-        font-size: 15px;
-    }
-
-    .operation-line {
-        flex-wrap: wrap;
-    }
-
-    .operation-line input {
-        max-width: none;
-        flex: 1;
-    }
-
-    .history-header {
-        align-items: flex-start;
-    }
-
-    .history-actions {
-        flex-direction: column;
-    }
+    .container { padding: 10px; }
+    .header h1 { font-size: 22px; }
+    .card { padding: 14px; }
+    .summary-row { font-size: 15px; }
+    .operation-line { flex-wrap: wrap; }
+    .history-header { align-items: flex-start; }
+    .history-actions { flex-direction: column; }
+    .range-grid { grid-template-columns: 1fr; }
 }
 </style>
 </head>
 <body>
 <div class="container">
 
-```
-<div class="header">
-    <h1>Investment Record</h1>
-    <p>Daily Value & Profit/Loss Management</p>
-</div>
-
-<div class="card">
-
-    <div class="date-box">
-        <strong>Date:</strong>
-
-        <input
-            type="date"
-            id="entryDate"
-            onchange="dateChanged()"
-        >
+    <div class="header">
+        <h1>Investment Record</h1>
+        <p>Daily Value & Profit/Loss Management</p>
     </div>
 
-    <div class="table-wrapper">
-
-        <table>
-
-            <thead>
-                <tr>
-                    <th>Name</th>
-                    <th>Old Value</th>
-                    <th>New Value</th>
-                    <th>Profit/Loss</th>
-                </tr>
-            </thead>
-
-            <tbody id="dataBody"></tbody>
-
-        </table>
-
-    </div>
-
-    <div class="summary">
-
-        <div class="summary-row">
-            <span class="summary-label">
-                Total Old Value
-            </span>
-
-            <span
-                class="summary-value"
-                id="totalOld"
-            >
-                0
-            </span>
+    <!-- DAILY ENTRY CARD -->
+    <div class="card">
+        <div class="section-title">Daily Entry</div>
+        <div class="date-box">
+            <strong>Date:</strong>
+            <input type="date" id="entryDate" onchange="dateChanged()">
         </div>
 
-        <div class="summary-row">
-            <span class="summary-label">
-                Total New Value
-            </span>
-
-            <span
-                class="summary-value"
-                id="totalNew"
-            >
-                0
-            </span>
+        <div class="table-wrapper">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Name</th>
+                        <th>Old Value</th>
+                        <th>New Value</th>
+                        <th>Profit/Loss</th>
+                    </tr>
+                </thead>
+                <tbody id="dataBody"></tbody>
+            </table>
         </div>
 
-        <div class="summary-row">
-            <span class="summary-label">
-                Total Profit/Loss
-            </span>
-
-            <span
-                class="summary-value"
-                id="totalProfitLoss"
-            >
-                0
-            </span>
-        </div>
-
-        <div class="operation-section">
-
-            <div class="operation-title">
-                Profit/Loss Operation
+        <div class="summary">
+            <div class="summary-row">
+                <span class="summary-label">Total Old Value</span>
+                <span class="summary-value" id="totalOld">0</span>
             </div>
 
-            <div class="operation-line">
-
-                <select
-                    id="operation"
-                    onchange="calculateFinal()"
-                >
-                    <option value="+">+</option>
-                    <option value="-">-</option>
-                </select>
-
-                <input
-                    type="number"
-                    id="operationAmount"
-                    value="0"
-                    placeholder="Enter amount"
-                    oninput="calculateFinal()"
-                >
-
+            <div class="summary-row">
+                <span class="summary-label">Total New Value</span>
+                <span class="summary-value" id="totalNew">0</span>
             </div>
 
+            <div class="summary-row">
+                <span class="summary-label">Total Profit/Loss</span>
+                <span class="summary-value" id="totalProfitLoss">0</span>
+            </div>
+
+            <div class="operation-section">
+                <div class="operation-title">Profit/Loss Adjustments</div>
+                <div id="operationContainer"></div>
+                <button class="add-op-btn" onclick="addOperationLine()">+ Add Adjustment Line</button>
+            </div>
+
+            <div class="final-row">
+                <span>Final Profit/Loss</span>
+                <span id="finalProfitLoss">0</span>
+            </div>
         </div>
 
-        <div class="final-row">
-
-            <span>
-                Final Profit/Loss
-            </span>
-
-            <span id="finalProfitLoss">
-                0
-            </span>
-
-        </div>
-
+        <button class="save-btn" onclick="saveData()">SAVE ENTRY</button>
+        <div class="status" id="status"></div>
     </div>
 
-    <button
-        class="save-btn"
-        onclick="saveData()"
-    >
-        SAVE ENTRY
-    </button>
+    <!-- DATE RANGE SUMMARY CARD -->
+    <div class="card">
+        <div class="section-title">Date Range Summary & Analysis (Slotwise)</div>
+        
+        <div class="range-grid">
+            <div>
+                <label><strong>Start Date (From):</strong></label>
+                <input type="date" id="startDate">
+            </div>
+            <div>
+                <label><strong>End Date (To):</strong></label>
+                <input type="date" id="endDate">
+            </div>
+        </div>
 
-    <div
-        class="status"
-        id="status"
-    ></div>
+        <button class="range-btn" onclick="calculateRangeSummary()">GENERATE SUMMARY</button>
+
+        <div id="rangeResult" class="hidden">
+            <div class="section-title" style="margin-top: 15px;">Individual Category Breakdown</div>
+            
+            <div class="table-wrapper">
+                <table>
+                    <thead>
+                        <tr>
+                            <th>Category Name</th>
+                            <th>Start Value</th>
+                            <th>End Value</th>
+                            <th>Adj Amount</th>
+                            <th>Profit / Loss</th>
+                            <th>Return (%)</th>
+                        </tr>
+                    </thead>
+                    <tbody id="rangeCategoryBody"></tbody>
+                </table>
+            </div>
+
+            <div class="operation-section" style="margin-top: 20px;">
+                <div class="operation-title">Adjustments Breakdown in Selected Slot</div>
+                <div id="rangeOperationsList"></div>
+            </div>
+
+            <!-- MERGE TOTAL CONTAINER -->
+            <div class="merge-box">
+                <div class="merge-title">Combined Merge Total</div>
+                <div class="summary-row">
+                    <span class="summary-label">Merge Start Total (Old)</span>
+                    <span class="summary-value" id="mergeOldTotal">0</span>
+                </div>
+                <div class="summary-row">
+                    <span class="summary-label">Merge End Total (New)</span>
+                    <span class="summary-value" id="mergeNewTotal">0</span>
+                </div>
+                <div class="summary-row">
+                    <span class="summary-label">Category Adjustments Total</span>
+                    <span class="summary-value" id="mergeCatAdjTotal">0</span>
+                </div>
+                <div class="summary-row">
+                    <span class="summary-label">Global Adjustments Total</span>
+                    <span class="summary-value" id="mergeAdjTotal">0</span>
+                </div>
+                <div class="summary-row" style="font-size: 20px; font-weight: bold; border-top: 2px solid #93c5fd; padding-top: 10px;">
+                    <span>Final Merge Profit/Loss</span>
+                    <span id="mergeFinalPL">0</span>
+                </div>
+                <div class="summary-row" style="font-size: 18px; font-weight: bold;">
+                    <span>Overall Return (%)</span>
+                    <span id="mergePercentage">0%</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- DAILY HISTORY CARD -->
+    <div class="card">
+        <button class="history-btn" onclick="toggleHistory()">VIEW DAILY HISTORY</button>
+        <div id="history" class="hidden"></div>
+    </div>
 
 </div>
 
-<div class="card">
-
-    <button
-        class="history-btn"
-        onclick="toggleHistory()"
-    >
-        VIEW HISTORY
-    </button>
-
-    <div
-        id="history"
-        class="hidden"
-    ></div>
-
-</div>
-```
-
-</div>
 <script>
+const SUPABASE_URL = "https://gcdbsywqwkreufaaouvx.supabase.co";
+const SUPABASE_KEY = "sb_publishable_EFsPnhS4H-KvWpngvKcPEQ_s4H-pkNN";
 
-const SUPABASE_URL =
-"https://gcdbsywqwkreufaaouvx.supabase.co";
-
-const SUPABASE_KEY =
-"sb_publishable_EFsPnhS4H-KvWpngvKcPEQ_s4H-pkNN";
-
-const client =
-window.supabase.createClient(
+const client = window.supabase.createClient(
     SUPABASE_URL,
     SUPABASE_KEY
 );
@@ -513,68 +528,70 @@ const names = [
     "Stocks"
 ];
 
-document.getElementById("entryDate").value =
-new Date().toISOString().split("T")[0];
+const today = new Date().toISOString().split("T")[0];
+document.getElementById("entryDate").value = today;
+document.getElementById("endDate").value = today;
 
 createDefaultRows();
+addOperationLine();
 calculate();
 
 function createDefaultRows() {
-
-    const tbody =
-    document.getElementById("dataBody");
-
+    const tbody = document.getElementById("dataBody");
     tbody.innerHTML = "";
-
     names.forEach(name => {
         addRow(name, 0, 0);
     });
 }
 
 function addRow(name, oldValue, newValue) {
-
-    const tbody =
-    document.getElementById("dataBody");
-
-    const row =
-    document.createElement("tr");
+    const tbody = document.getElementById("dataBody");
+    const row = document.createElement("tr");
 
     row.innerHTML = `
-
         <td>
-            <input
-                type="text"
-                class="name"
-                value="${name}"
-                readonly
-            >
+            <input type="text" class="name" value="${name}" readonly>
         </td>
-
         <td>
-            <input
-                type="number"
-                class="oldValue"
-                value="${oldValue}"
-                oninput="calculate()"
-            >
+            <input type="number" class="oldValue" value="${oldValue}" oninput="calculate()">
         </td>
-
         <td>
-            <input
-                type="number"
-                class="newValue"
-                value="${newValue}"
-                oninput="calculate()"
-            >
+            <input type="number" class="newValue" value="${newValue}" oninput="calculate()">
         </td>
+        <td class="profit-loss">0</td>
+    `;
+    tbody.appendChild(row);
+}
 
-        <td class="profit-loss">
-            0
-        </td>
+function addOperationLine(asset = "ALL", op = "+", amount = 0) {
+    const container = document.getElementById("operationContainer");
+    const div = document.createElement("div");
+    div.className = "operation-line";
 
+    let assetOptions = `<option value="ALL" ${asset === "ALL" ? "selected" : ""}>All Items</option>`;
+    names.forEach(n => {
+        assetOptions += `<option value="${n}" ${asset === n ? "selected" : ""}>${n}</option>`;
+    });
+
+    div.innerHTML = `
+        <select class="asset-select" onchange="calculateFinal()">
+            ${assetOptions}
+        </select>
+        <select class="op-select" onchange="calculateFinal()">
+            <option value="+" ${op === "+" ? "selected" : ""}>+</option>
+            <option value="-" ${op === "-" ? "selected" : ""}>-</option>
+        </select>
+        <input type="number" class="op-amount" value="${amount}" placeholder="Amount" oninput="calculateFinal()">
+        <button class="remove-op-btn" onclick="removeOperationLine(this)">✕</button>
     `;
 
-    tbody.appendChild(row);
+    container.appendChild(div);
+    calculateFinal();
+}
+
+function removeOperationLine(button) {
+    button.parentElement.remove();
+    calculateFinal();
 }
 
 function number(value) {
@@ -582,139 +599,75 @@ function number(value) {
 }
 
 function format(value) {
-
-    return new Intl.NumberFormat(
-        "en-IN"
-    ).format(value);
-
+    return new Intl.NumberFormat("en-IN").format(Math.round(value));
 }
 
 function calculate() {
-
     let oldTotal = 0;
     let newTotal = 0;
     let profitLossTotal = 0;
 
-    document
-    .querySelectorAll("#dataBody tr")
-    .forEach(row => {
+    document.querySelectorAll("#dataBody tr").forEach(row => {
+        const oldValue = number(row.querySelector(".oldValue").value);
+        const newValue = number(row.querySelector(".newValue").value);
+        const profitLoss = newValue - oldValue;
 
-        const oldValue =
-        number(
-            row.querySelector(".oldValue").value
-        );
-
-        const newValue =
-        number(
-            row.querySelector(".newValue").value
-        );
-
-        const profitLoss =
-        newValue - oldValue;
-
-        const cell =
-        row.querySelector(".profit-loss");
-
-        cell.textContent =
-        format(profitLoss);
-
-        cell.className =
-        "profit-loss " +
-        (
-            profitLoss >= 0
-            ? "positive"
-            : "negative"
-        );
+        const cell = row.querySelector(".profit-loss");
+        cell.textContent = format(profitLoss);
+        cell.className = "profit-loss " + (profitLoss >= 0 ? "positive" : "negative");
 
         oldTotal += oldValue;
         newTotal += newValue;
         profitLossTotal += profitLoss;
-
     });
 
-    document.getElementById("totalOld").textContent =
-    format(oldTotal);
-
-    document.getElementById("totalNew").textContent =
-    format(newTotal);
-
-    document.getElementById("totalProfitLoss").textContent =
-    format(profitLossTotal);
+    document.getElementById("totalOld").textContent = format(oldTotal);
+    document.getElementById("totalNew").textContent = format(newTotal);
+    document.getElementById("totalProfitLoss").textContent = format(profitLossTotal);
 
     calculateFinal();
 }
 
+function getAdjustmentsTotal() {
+    let adjustmentTotal = 0;
+    document.querySelectorAll(".operation-line").forEach(line => {
+        const op = line.querySelector(".op-select").value;
+        const amt = number(line.querySelector(".op-amount").value);
+        if (op === "+") {
+            adjustmentTotal += amt;
+        } else {
+            adjustmentTotal -= amt;
+        }
+    });
+    return adjustmentTotal;
+}
+
 function calculateFinal() {
+    const totalProfitLoss = getTotalProfitLoss();
+    const adjustmentTotal = getAdjustmentsTotal();
 
-    const totalProfitLoss =
-    getTotalProfitLoss();
+    const finalValue = totalProfitLoss + adjustmentTotal;
+    const finalElement = document.getElementById("finalProfitLoss");
 
-    const operation =
-    document.getElementById("operation").value;
-
-    const amount =
-    number(
-        document.getElementById("operationAmount").value
-    );
-
-    let finalValue;
-
-    if (operation === "+") {
-        finalValue =
-        totalProfitLoss + amount;
-    } else {
-        finalValue =
-        totalProfitLoss - amount;
-    }
-
-    const finalElement =
-    document.getElementById("finalProfitLoss");
-
-    finalElement.textContent =
-    format(finalValue);
-
-    finalElement.className =
-    finalValue >= 0
-    ? "positive"
-    : "negative";
+    finalElement.textContent = format(finalValue);
+    finalElement.className = finalValue >= 0 ? "positive" : "negative";
 }
 
 function getTotalProfitLoss() {
-
     let total = 0;
-
-    document
-    .querySelectorAll("#dataBody tr")
-    .forEach(row => {
-
-        const oldValue =
-        number(
-            row.querySelector(".oldValue").value
-        );
-
-        const newValue =
-        number(
-            row.querySelector(".newValue").value
-        );
-
-        total +=
-        newValue - oldValue;
-
+    document.querySelectorAll("#dataBody tr").forEach(row => {
+        const oldValue = number(row.querySelector(".oldValue").value);
+        const newValue = number(row.querySelector(".newValue").value);
+        total += (newValue - oldValue);
     });
-
     return total;
 }
 
 async function dateChanged() {
-
-    const selectedDate =
-    document.getElementById("entryDate").value;
-
+    const selectedDate = document.getElementById("entryDate").value;
     if (!selectedDate) return;
 
-    // First check whether this date already has saved entries.
-    const { data: currentData, error: currentError } =
-    await client
+    const { data: currentData, error: currentError } = await client
         .from("records")
         .select("*")
         .eq("entry_date", selectedDate)
@@ -725,16 +678,12 @@ async function dateChanged() {
         return;
     }
 
-    // If entries exist for this date, show the exact saved Old and New values.
     if (currentData && currentData.length > 0) {
         loadSavedDateData(currentData);
         return;
     }
 
-    // Otherwise, use the latest SAVED date before the selected date
-    // and carry its New Value forward as this date's Old Value.
-    const { data, error } =
-    await client
+    const { data, error } = await client
         .from("records")
         .select("*")
         .lt("entry_date", selectedDate)
@@ -748,8 +697,7 @@ async function dateChanged() {
 
     if (!data || data.length === 0) {
         createDefaultRows();
-        document.getElementById("operationAmount").value = 0;
-        document.getElementById("operation").value = "+";
+        resetOperations();
         calculate();
         return;
     }
@@ -758,6 +706,10 @@ async function dateChanged() {
     const latestRecords = data.filter(item => item.entry_date === latestDate);
 
     loadPreviousData(latestRecords);
+}
+
+function resetOperations() {
+    document.getElementById("operationContainer").innerHTML = "";
 }
 
 function loadSavedDateData(records) {
@@ -773,8 +725,20 @@ function loadSavedDateData(records) {
         );
     });
 
-    document.getElementById("operationAmount").value = 0;
-    document.getElementById("operation").value = "+";
+    resetOperations();
+
+    const adjustments = records.filter(r => r.name.startsWith("ADJ_"));
+    if (adjustments.length > 0) {
+        adjustments.forEach(adj => {
+            const assetName = adj.name.replace("ADJ_", "");
+            const val = Number(adj.investment);
+            const op = val >= 0 ? "+" : "-";
+            addOperationLine(assetName, op, Math.abs(val));
+        });
+    } else {
+        addOperationLine();
+    }
+
     calculate();
 
     document.getElementById("status").textContent =
@@ -782,420 +746,386 @@ function loadSavedDateData(records) {
 }
 
 function loadPreviousData(records) {
-
-    const tbody =
-    document.getElementById("dataBody");
-
+    const tbody = document.getElementById("dataBody");
     tbody.innerHTML = "";
 
     names.forEach(name => {
-
-        const previous =
-        records.find(
-            item => item.name === name
+        const previous = records.find(item => item.name === name);
+        addRow(
+            name,
+            previous ? previous.new_rate : 0,
+            0
         );
-
-        if (previous) {
-
-            addRow(
-                name,
-                previous.new_rate,
-                0
-            );
-
-        } else {
-
-            addRow(
-                name,
-                0,
-                0
-            );
-
-        }
-
     });
 
-    document.getElementById(
-        "operationAmount"
-    ).value = 0;
-
-    document.getElementById(
-        "operation"
-    ).value = "+";
-
+    resetOperations();
+    addOperationLine();
     calculate();
 }
 
 async function saveData() {
-
-    const date =
-    document.getElementById("entryDate").value;
+    const date = document.getElementById("entryDate").value;
 
     if (!date) {
-
         alert("Please select date");
-
         return;
     }
 
     const rows = [];
 
-    document
-    .querySelectorAll("#dataBody tr")
-    .forEach(row => {
-
+    document.querySelectorAll("#dataBody tr").forEach(row => {
         rows.push({
-
             entry_date: date,
-
-            name:
-            row.querySelector(".name").value,
-
-            old_rate:
-            number(
-                row.querySelector(".oldValue").value
-            ),
-
-            new_rate:
-            number(
-                row.querySelector(".newValue").value
-            ),
-
+            name: row.querySelector(".name").value,
+            old_rate: number(row.querySelector(".oldValue").value),
+            new_rate: number(row.querySelector(".newValue").value),
             investment: 0
-
         });
-
     });
 
-    if (rows.length !== 6) {
+    document.querySelectorAll(".operation-line").forEach(line => {
+        const asset = line.querySelector(".asset-select").value;
+        const op = line.querySelector(".op-select").value;
+        const amt = number(line.querySelector(".op-amount").value);
+        const netAmt = op === "+" ? amt : -amt;
 
-        alert(
-            "Exactly 6 records are required."
-        );
+        rows.push({
+            entry_date: date,
+            name: "ADJ_" + asset,
+            old_rate: 0,
+            new_rate: 0,
+            investment: netAmt
+        });
+    });
 
-        return;
-    }
+    document.getElementById("status").textContent = "Saving...";
 
-    document.getElementById("status").textContent =
-    "Saving...";
-
-    const { error: deleteError } =
-    await client
-    .from("records")
-    .delete()
-    .eq("entry_date", date);
+    const { error: deleteError } = await client
+        .from("records")
+        .delete()
+        .eq("entry_date", date);
 
     if (deleteError) {
-
-        alert(
-            "Error updating date: " +
-            deleteError.message
-        );
-
-        document.getElementById("status").textContent =
-        "";
-
+        alert("Error updating date: " + deleteError.message);
+        document.getElementById("status").textContent = "";
         return;
     }
 
-    const { error } =
-    await client
-    .from("records")
-    .insert(rows);
+    const { error } = await client
+        .from("records")
+        .insert(rows);
 
     if (error) {
-
         alert(error.message);
-
-        document.getElementById("status").textContent =
-        "Error while saving";
-
+        document.getElementById("status").textContent = "Error while saving";
         return;
     }
 
-    document.getElementById("status").textContent =
-    "Saved successfully ✓";
-
-    alert(
-        "Data saved successfully!"
-    );
+    document.getElementById("status").textContent = "Saved successfully ✓";
+    alert("Data saved successfully!");
 
     loadHistory();
 }
 
-async function loadHistory() {
+/* ===================================================
+   SLOTWISE DATE RANGE SUMMARY (INDIVIDUAL ADJ INCLUDED)
+   =================================================== */
+async function calculateRangeSummary() {
+    const startDate = document.getElementById("startDate").value;
+    const endDate = document.getElementById("endDate").value;
 
-    const { data, error } =
-    await client
-    .from("records")
-    .select("*")
-    .order("entry_date", {
-        ascending: false
-    })
-    .order("created_at", {
-        ascending: false
-    });
+    if (!startDate || !endDate) {
+        alert("Please select both Start Date and End Date!");
+        return;
+    }
+
+    if (startDate > endDate) {
+        alert("Start Date cannot be greater than End Date!");
+        return;
+    }
+
+    const { data, error } = await client
+        .from("records")
+        .select("*")
+        .gte("entry_date", startDate)
+        .lte("entry_date", endDate)
+        .order("entry_date", { ascending: true });
 
     if (error) {
+        alert("Failed to fetch range data: " + error.message);
+        return;
+    }
 
+    if (!data || data.length === 0) {
+        alert("No records found in selected date range!");
+        return;
+    }
+
+    const dates = [...new Set(data.map(item => item.entry_date))];
+    const actualStartDate = dates[0];
+    const actualEndDate = dates[dates.length - 1];
+
+    const startRecords = data.filter(r => r.entry_date === actualStartDate);
+    const endRecords = data.filter(r => r.entry_date === actualEndDate);
+
+    // Get all adjustments in this period
+    const allAdjustments = data.filter(r => r.name.startsWith("ADJ_"));
+    const adjGrouped = {};
+    allAdjustments.forEach(adj => {
+        const assetName = adj.name.replace("ADJ_", "");
+        const val = Number(adj.investment);
+        if (!adjGrouped[assetName]) adjGrouped[assetName] = 0;
+        adjGrouped[assetName] += val;
+    });
+
+    const categoryBody = document.getElementById("rangeCategoryBody");
+    categoryBody.innerHTML = "";
+
+    let totalOld = 0;
+    let totalNew = 0;
+    let totalCatAdj = 0;
+    let totalRawPL = 0;
+
+    // Calculate 6 Individual Categories with Specific Adjustments
+    names.forEach(name => {
+        const startItem = startRecords.find(r => r.name === name);
+        const endItem = endRecords.find(r => r.name === name);
+
+        const startVal = startItem ? Number(startItem.old_rate) : 0;
+        const endVal = endItem ? Number(endItem.new_rate) : 0;
+        const specificAdj = adjGrouped[name] || 0; // Prudent -> -50000 etc.
+
+        const rawPl = endVal - startVal;
+        const finalCategoryPL = rawPl + specificAdj;
+        const pct = startVal > 0 ? ((finalCategoryPL / startVal) * 100).toFixed(2) : "0.00";
+
+        totalOld += startVal;
+        totalNew += endVal;
+        totalRawPL += rawPl;
+        totalCatAdj += specificAdj;
+
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+            <td><strong>${name}</strong></td>
+            <td>${format(startVal)}</td>
+            <td>${format(endVal)}</td>
+            <td class="${specificAdj >= 0 ? 'positive' : 'negative'}">${specificAdj >= 0 ? '+' : ''}${format(specificAdj)}</td>
+            <td class="${finalCategoryPL >= 0 ? 'positive' : 'negative'}">${format(finalCategoryPL)}</td>
+            <td class="${finalCategoryPL >= 0 ? 'positive' : 'negative'}">${pct}%</td>
+        `;
+        categoryBody.appendChild(tr);
+    });
+
+    // Display Operations/Adjustments Breakdown
+    const rangeOpsList = document.getElementById("rangeOperationsList");
+    rangeOpsList.innerHTML = "";
+
+    const globalAdj = adjGrouped["ALL"] || 0;
+
+    if (Object.keys(adjGrouped).length === 0) {
+        rangeOpsList.innerHTML = "<em>No adjustments recorded in this period.</em>";
+    } else {
+        Object.keys(adjGrouped).forEach(assetName => {
+            const val = adjGrouped[assetName];
+            const div = document.createElement("div");
+            div.className = "history-row";
+            div.style.padding = "4px 0";
+            div.innerHTML = `
+                <span>${assetName === "ALL" ? "Global Adjustment (All Items)" : "Adjustment for " + assetName}:</span>
+                <strong class="${val >= 0 ? 'positive' : 'negative'}">${val >= 0 ? '+' : ''}${format(val)}</strong>
+            `;
+            rangeOpsList.appendChild(div);
+        });
+    }
+
+    // Merge Calculations
+    const finalMergePL = totalRawPL + totalCatAdj + globalAdj;
+    const mergePct = totalOld > 0 ? ((finalMergePL / totalOld) * 100).toFixed(2) : "0.00";
+
+    document.getElementById("mergeOldTotal").textContent = format(totalOld);
+    document.getElementById("mergeNewTotal").textContent = format(totalNew);
+
+    document.getElementById("mergeCatAdjTotal").textContent = (totalCatAdj >= 0 ? "+" : "") + format(totalCatAdj);
+    document.getElementById("mergeCatAdjTotal").className = "summary-value " + (totalCatAdj >= 0 ? "positive" : "negative");
+
+    document.getElementById("mergeAdjTotal").textContent = (globalAdj >= 0 ? "+" : "") + format(globalAdj);
+    document.getElementById("mergeAdjTotal").className = "summary-value " + (globalAdj >= 0 ? "positive" : "negative");
+
+    document.getElementById("mergeFinalPL").textContent = format(finalMergePL);
+    document.getElementById("mergeFinalPL").className = finalMergePL >= 0 ? "positive" : "negative";
+
+    document.getElementById("mergePercentage").textContent = mergePct + "%";
+    document.getElementById("mergePercentage").className = mergePct >= 0 ? "positive" : "negative";
+
+    document.getElementById("rangeResult").classList.remove("hidden");
+}
+
+/* ===================================================
+   HISTORY FUNCTIONS
+   =================================================== */
+async function loadHistory() {
+    const { data, error } = await client
+        .from("records")
+        .select("*")
+        .order("entry_date", { ascending: false })
+        .order("created_at", { ascending: false });
+
+    if (error) {
         console.error(error);
         return;
     }
 
-    const history =
-    document.getElementById("history");
-
+    const history = document.getElementById("history");
     history.innerHTML = "";
 
     const grouped = {};
 
     data.forEach(item => {
-
         if (!grouped[item.entry_date]) {
             grouped[item.entry_date] = [];
         }
-
         grouped[item.entry_date].push(item);
-
     });
 
     Object.keys(grouped).forEach(date => {
-
         let oldTotal = 0;
         let newTotal = 0;
+        let adjTotal = 0;
 
         grouped[date].forEach(item => {
-
-            oldTotal +=
-            Number(item.old_rate);
-
-            newTotal +=
-            Number(item.new_rate);
-
+            if (!item.name.startsWith("ADJ_")) {
+                oldTotal += Number(item.old_rate);
+                newTotal += Number(item.new_rate);
+            } else {
+                adjTotal += Number(item.investment);
+            }
         });
 
-        const profitLoss =
-        newTotal - oldTotal;
+        const rawProfitLoss = newTotal - oldTotal;
+        const finalProfitLoss = rawProfitLoss + adjTotal;
 
-        const div =
-        document.createElement("div");
-
-        div.className =
-        "history-item";
+        const div = document.createElement("div");
+        div.className = "history-item";
 
         div.innerHTML = `
-
             <div class="history-header">
-
-                <div class="history-date">
-                    ${date}
-                </div>
-
+                <div class="history-date">${date}</div>
                 <div class="history-actions">
-
-                    <button
-                        class="view-btn"
-                        onclick="viewHistory('${date}')"
-                    >
-                        VIEW
-                    </button>
-
-                    <button
-                        class="edit-btn"
-                        onclick="editHistory('${date}')"
-                    >
-                        EDIT
-                    </button>
-
-                    <button
-                        class="delete-btn"
-                        onclick="deleteHistory('${date}')"
-                    >
-                        DELETE
-                    </button>
-
+                    <button class="view-btn" onclick="viewHistory('${date}')">VIEW</button>
+                    <button class="edit-btn" onclick="editHistory('${date}')">EDIT</button>
+                    <button class="delete-btn" onclick="deleteHistory('${date}')">DELETE</button>
                 </div>
-
             </div>
 
             <div class="history-summary">
-
                 <div class="history-row">
-
-                    <span>
-                        Total Old Value
-                    </span>
-
-                    <strong>
-                        ${format(oldTotal)}
-                    </strong>
-
+                    <span>Total Old Value</span>
+                    <strong>${format(oldTotal)}</strong>
                 </div>
 
                 <div class="history-row">
+                    <span>Total New Value</span>
+                    <strong>${format(newTotal)}</strong>
+                </div>
 
-                    <span>
-                        Total New Value
-                    </span>
-
-                    <strong>
-                        ${format(newTotal)}
+                <div class="history-row">
+                    <span>Adjustments Total</span>
+                    <strong class="${adjTotal >= 0 ? "positive" : "negative"}">
+                        ${adjTotal >= 0 ? "+" : ""}${format(adjTotal)}
                     </strong>
-
                 </div>
 
                 <div class="history-row history-total">
-
-                    <span>
-                        Total Profit/Loss
-                    </span>
-
-                    <strong class="${
-                        profitLoss >= 0
-                        ? "positive"
-                        : "negative"
-                    }">
-                        ${format(profitLoss)}
+                    <span>Final Profit/Loss</span>
+                    <strong class="${finalProfitLoss >= 0 ? "positive" : "negative"}">
+                        ${format(finalProfitLoss)}
                     </strong>
-
                 </div>
-
             </div>
 
-            <div
-                id="details-${date}"
-                class="history-details"
-            ></div>
-
+            <div id="details-${date}" class="history-details"></div>
         `;
 
         history.appendChild(div);
-
     });
-
 }
 
 async function viewHistory(date) {
+    const details = document.getElementById("details-" + date);
 
-    const details =
-    document.getElementById(
-        "details-" + date
-    );
-
-    if (
-        details.style.display === "block"
-    ) {
-
+    if (details.style.display === "block") {
         details.style.display = "none";
-
         return;
     }
 
-    const { data, error } =
-    await client
-    .from("records")
-    .select("*")
-    .eq("entry_date", date)
-    .order("created_at", {
-        ascending: true
-    });
+    const { data, error } = await client
+        .from("records")
+        .select("*")
+        .eq("entry_date", date)
+        .order("created_at", { ascending: true });
 
     if (error) {
-
-        alert(
-            "Unable to load details: " +
-            error.message
-        );
-
+        alert("Unable to load details: " + error.message);
         return;
     }
 
     details.innerHTML = "";
 
     names.forEach(name => {
+        const item = data.find(record => record.name === name);
+        const oldValue = item ? Number(item.old_rate) : 0;
+        const newValue = item ? Number(item.new_rate) : 0;
+        const profitLoss = newValue - oldValue;
 
-        const item =
-        data.find(
-            record =>
-            record.name === name
-        );
-
-        const oldValue =
-        item
-        ? Number(item.old_rate)
-        : 0;
-
-        const newValue =
-        item
-        ? Number(item.new_rate)
-        : 0;
-
-        const profitLoss =
-        newValue - oldValue;
-
-        const box =
-        document.createElement("div");
-
-        box.className =
-        "detail-box";
+        const box = document.createElement("div");
+        box.className = "detail-box";
 
         box.innerHTML = `
-
-            <div class="detail-name">
-                ${name}
-            </div>
-
+            <div class="detail-name">${name}</div>
             <div class="detail-row">
-
-                <span>
-                    Old Value
-                </span>
-
-                <strong>
-                    ${format(oldValue)}
-                </strong>
-
+                <span>Old Value</span>
+                <strong>${format(oldValue)}</strong>
             </div>
-
             <div class="detail-row">
-
-                <span>
-                    New Value
-                </span>
-
-                <strong>
-                    ${format(newValue)}
-                </strong>
-
+                <span>New Value</span>
+                <strong>${format(newValue)}</strong>
             </div>
-
             <div class="detail-row">
-
-                <span>
-                    Profit/Loss
-                </span>
-
-                <strong class="${
-                    profitLoss >= 0
-                    ? "positive"
-                    : "negative"
-                }">
+                <span>Profit/Loss</span>
+                <strong class="${profitLoss >= 0 ? "positive" : "negative"}">
                     ${format(profitLoss)}
                 </strong>
-
             </div>
-
         `;
 
         details.appendChild(box);
-
     });
+
+    const adjustments = data.filter(r => r.name.startsWith("ADJ_"));
+    if (adjustments.length > 0) {
+        const adjBox = document.createElement("div");
+        adjBox.className = "detail-box";
+        let adjHtml = `<div class="detail-name">Custom Adjustments</div>`;
+        adjustments.forEach(adj => {
+            const assetName = adj.name.replace("ADJ_", "");
+            const amt = Number(adj.investment);
+            adjHtml += `
+                <div class="detail-row">
+                    <span>${assetName}</span>
+                    <strong class="${amt >= 0 ? "positive" : "negative"}">
+                        ${amt >= 0 ? "+" : ""}${format(amt)}
+                    </strong>
+                </div>
+            `;
+        });
+        adjBox.innerHTML = adjHtml;
+        details.appendChild(adjBox);
+    }
 
     details.style.display = "block";
 }
 
 async function editHistory(date) {
-
     const { data, error } = await client
         .from("records")
         .select("*")
@@ -1212,84 +1142,42 @@ async function editHistory(date) {
         return;
     }
 
-    // Load the selected date's saved values into the main form.
     document.getElementById("entryDate").value = date;
-
-    const tbody = document.getElementById("dataBody");
-    tbody.innerHTML = "";
-
-    names.forEach(name => {
-        const item = data.find(record => record.name === name);
-        addRow(
-            name,
-            item ? Number(item.old_rate) : 0,
-            item ? Number(item.new_rate) : 0
-        );
-    });
-
-    document.getElementById("operationAmount").value = 0;
-    document.getElementById("operation").value = "+";
-    calculate();
+    loadSavedDateData(data);
 
     document.getElementById("status").textContent =
         "Editing " + date + " — make changes and click SAVE ENTRY.";
 
-    // Bring the editable form into view.
     document.querySelector(".header").scrollIntoView({ behavior: "smooth" });
 }
 
 async function deleteHistory(date) {
+    const confirmDelete = confirm("Are you sure you want to delete all records for " + date + "?");
 
-    const confirmDelete =
-    confirm(
-        "Are you sure you want to delete all records for " +
-        date +
-        "?"
-    );
+    if (!confirmDelete) return;
 
-    if (!confirmDelete) {
-        return;
-    }
-
-    const { error } =
-    await client
-    .from("records")
-    .delete()
-    .eq("entry_date", date);
+    const { error } = await client
+        .from("records")
+        .delete()
+        .eq("entry_date", date);
 
     if (error) {
-
-        alert(
-            "Delete failed: " +
-            error.message
-        );
-
+        alert("Delete failed: " + error.message);
         return;
     }
 
-    alert(
-        date +
-        " history deleted successfully."
-    );
-
+    alert(date + " history deleted successfully.");
     loadHistory();
 }
 
 function toggleHistory() {
-
-    const history =
-    document.getElementById("history");
-
+    const history = document.getElementById("history");
     history.classList.toggle("hidden");
 
-    if (
-        !history.classList.contains("hidden")
-    ) {
+    if (!history.classList.contains("hidden")) {
         loadHistory();
     }
-
 }
-
 </script>
 </body>
 </html>
